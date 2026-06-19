@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KanFlow — Kanban Task Board</title>
+  <meta name="description" content="A premium Trello-style Kanban board with stunning animations, drag & drop, and localStorage persistence." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ── Animated Background ── -->
+  <div class="bg-scene" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
+    <div class="aurora"></div>
+    <div class="grid-overlay"></div>
+  </div>
+
+  <!-- ── Particle Canvas ── -->
+  <canvas id="particle-canvas" aria-hidden="true"></canvas>
+
+  <!-- ── Header ── -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-icon-wrap">
+          <span class="logo-icon">⚡</span>
+          <div class="logo-icon-ring"></div>
+        </div>
+        <div class="logo-text-group">
+          <span class="logo-text">KANBAN</span>
+          <span class="logo-sub">TASK BOARD</span>
+        </div>
+      </div>
+
+      <div class="progress-section">
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="progress-fill"></div>
+            <div class="progress-bar-shine"></div>
+          </div>
+          <span class="progress-label" id="progress-label">0% complete</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="board-stats">
+          <div class="stat-chip" id="stat-todo-chip">
+            <span class="stat-dot dot-todo"></span>
+            <span id="stat-todo">0</span>
+            <span class="stat-name">To Do</span>
+          </div>
+          <div class="stat-chip" id="stat-progress-chip">
+            <span class="stat-dot dot-inprogress"></span>
+            <span id="stat-progress">0</span>
+            <span class="stat-name">In Progress</span>
+          </div>
+          <div class="stat-chip" id="stat-done-chip">
+            <span class="stat-dot dot-done"></span>
+            <span id="stat-done">0</span>
+            <span class="stat-name">Done</span>
+          </div>
+        </div>
+        <button class="btn-clear-done" id="btn-clear-done" title="Clear all done cards">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="m19 6-.867 14.142A2 2 0 0 1 16.138 22H7.862a2 2 0 0 1-1.995-1.858L5 6"/></svg>
+          Clear Done
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Board ── -->
+  <main class="board-container">
+    <div class="board" id="board">
+
+      <!-- To Do Column -->
+      <section class="column" id="col-todo" data-column="todo">
+        <div class="column-glow glow-todo"></div>
+        <div class="column-header">
+          <div class="column-title-row">
+            <div class="column-icon-wrap icon-todo">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="9" y1="12" x2="15" y2="12"/></svg>
+            </div>
+            <h2 class="column-title">To Do</h2>
+            <span class="column-count" id="count-todo">0</span>
+          </div>
+          <button class="btn-add-card" data-column="todo" id="add-todo" aria-label="Add card to To Do">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span class="btn-add-label">Add</span>
+          </button>
+        </div>
+        <div class="cards-container" id="cards-todo" data-column="todo"></div>
+        <div class="drop-zone-hint" id="hint-todo">
+          <div class="drop-icon">⬇</div>
+          <span>Drop here</span>
+        </div>
+      </section>
+
+      <!-- In Progress Column -->
+      <section class="column" id="col-inprogress" data-column="inprogress">
+        <div class="column-glow glow-inprogress"></div>
+        <div class="column-header">
+          <div class="column-title-row">
+            <div class="column-icon-wrap icon-inprogress">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            </div>
+            <h2 class="column-title">In Progress</h2>
+            <span class="column-count" id="count-inprogress">0</span>
+          </div>
+          <button class="btn-add-card" data-column="inprogress" id="add-inprogress" aria-label="Add card to In Progress">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span class="btn-add-label">Add</span>
+          </button>
+        </div>
+        <div class="cards-container" id="cards-inprogress" data-column="inprogress"></div>
+        <div class="drop-zone-hint" id="hint-inprogress">
+          <div class="drop-icon">⬇</div>
+          <span>Drop here</span>
+        </div>
+      </section>
+
+      <!-- Done Column -->
+      <section class="column" id="col-done" data-column="done">
+        <div class="column-glow glow-done"></div>
+        <div class="column-header">
+          <div class="column-title-row">
+            <div class="column-icon-wrap icon-done">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <h2 class="column-title">Done</h2>
+            <span class="column-count" id="count-done">0</span>
+          </div>
+          <button class="btn-add-card" data-column="done" id="add-done" aria-label="Add card to Done">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span class="btn-add-label">Add</span>
+          </button>
+        </div>
+        <div class="cards-container" id="cards-done" data-column="done"></div>
+        <div class="drop-zone-hint" id="hint-done">
+          <div class="drop-icon">⬇</div>
+          <span>Drop here</span>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ── Create / Edit Card Modal ── -->
+  <div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal" id="modal">
+      <div class="modal-accent-bar" id="modal-accent-bar"></div>
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon" id="modal-icon">✦</div>
+          <h3 class="modal-title" id="modal-title">New Card</h3>
+        </div>
+        <button class="modal-close" id="modal-close" aria-label="Close modal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="card-title-input">Title <span class="required">*</span></label>
+          <input class="form-input" type="text" id="card-title-input" placeholder="What needs to be done?" maxlength="120" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="card-desc-input">Description</label>
+          <textarea class="form-textarea" id="card-desc-input" placeholder="Add more details here..." rows="3" maxlength="500"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label class="form-label" for="card-priority-input">Priority</label>
+            <select class="form-select" id="card-priority-input">
+              <option value="low">🟢 Low</option>
+              <option value="medium" selected>🟡 Medium</option>
+              <option value="high">🔴 High</option>
+              <option value="urgent">🚨 Urgent</option>
+            </select>
+          </div>
+          <div class="form-group flex-1">
+            <label class="form-label" for="card-tag-input">Tag</label>
+            <input class="form-input" type="text" id="card-tag-input" placeholder="e.g. Design, Bug..." maxlength="30" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="card-due-input">Due Date</label>
+          <input class="form-input" type="date" id="card-due-input" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="modal-cancel">Cancel</button>
+        <button class="btn-primary" id="modal-save">
+          <span class="btn-primary-shine"></span>
+          <span id="modal-save-text">Create Card</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Delete Confirm Modal ── -->
+  <div class="modal-overlay" id="delete-overlay" role="dialog" aria-modal="true">
+    <div class="modal modal-sm" id="delete-modal">
+
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon danger-icon">⚠</div>
+          <h3 class="modal-title">Delete Card</h3>
+        </div>
+      </div>
+      <div class="modal-body">
+        <p class="delete-message">Are you sure you want to delete <strong id="delete-card-name"></strong>? This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="delete-cancel">Cancel</button>
+        <button class="btn-danger" id="delete-confirm">
+          <span class="btn-primary-shine"></span>
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Complete Confirm Modal ── -->
+  <div class="modal-overlay" id="complete-overlay" role="dialog" aria-modal="true">
+    <div class="modal modal-sm" id="complete-modal">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon">✦</div>
+          <h3 class="modal-title">Mark as Completed</h3>
+        </div>
+      </div>
+      <div class="modal-body">
+        <p class="delete-message">Move <strong id="complete-card-name"></strong> to the <strong>Done</strong> column?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="complete-cancel">Cancel</button>
+        <button class="btn-primary" id="complete-confirm">
+          <span class="btn-primary-shine"></span>
+          Complete
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ── Toast Notification ── -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- ── Cursor Glow ── -->
+  <div class="cursor-glow" id="cursor-glow" aria-hidden="true"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
