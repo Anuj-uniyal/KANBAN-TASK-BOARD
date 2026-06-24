@@ -1,6 +1,6 @@
 # KanFlow — Kanban Task Board
 
-A premium, Trello-style Kanban board built with **HTML + CSS + vanilla JavaScript**.
+A premium, Trello-style Kanban board built with **HTML + CSS + vanilla JavaScript**. 
 
 - Drag & drop cards between **To Do → In Progress → Done**
 - Create / edit / delete cards
